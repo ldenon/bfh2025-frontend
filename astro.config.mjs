@@ -19,5 +19,5 @@ export default defineConfig({
   adapter: node({
     mode: "standalone",
   }),
-  site: "https://samperalabs.com",
+  site: "https://bfh2025.denon.dev",
 });
