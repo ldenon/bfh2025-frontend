@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Scene from "./Scene";
 import { Button } from "@/components/ui/button";
 import data from "@/data/data.json";
@@ -10,8 +10,73 @@ export default function App() {
   const [cameraAngle, setCameraAngle] = useState("top");
   const [selectedItem, setSelectedItem] = useState(null);
 
+  const timelineRef = useRef(null);
+
   const sortedItems = [...data.items].sort((a, b) => b.center_y - a.center_y);
   const nextItem = sortedItems[numItems];
+
+  // Autoscroll timeline to show next item
+  useEffect(() => {
+    if (timelineRef.current && numItems < sortedItems.length) {
+      const container = timelineRef.current;
+      const itemHeight = 56; // Approximate height of each timeline item (including gap)
+      const containerHeight = container.clientHeight;
+      const scrollTop = container.scrollTop;
+      const nextItemTop = numItems * itemHeight;
+      const nextItemBottom = nextItemTop + itemHeight;
+
+      // Check if next item is not fully visible
+      if (
+        nextItemBottom > scrollTop + containerHeight ||
+        nextItemTop < scrollTop
+      ) {
+        // Scroll to center the next item in the container
+        const targetScrollTop = Math.max(
+          0,
+          nextItemTop - containerHeight / 2 + itemHeight / 2
+        );
+        container.scrollTo({
+          top: targetScrollTop,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [numItems, sortedItems.length]);
+
+  // Autoscroll timeline to show selected item
+  useEffect(() => {
+    if (timelineRef.current && selectedItem) {
+      const container = timelineRef.current;
+      const itemHeight = 56; // Approximate height of each timeline item (including gap)
+      const containerHeight = container.clientHeight;
+      const scrollTop = container.scrollTop;
+
+      // Find the index of the selected item in sortedItems
+      const selectedIndex = sortedItems.findIndex(
+        (item) => item.id === selectedItem.id
+      );
+      if (selectedIndex === -1) return;
+
+      const selectedItemTop = selectedIndex * itemHeight;
+      const selectedItemBottom = selectedItemTop + itemHeight;
+
+      // Check if selected item is not fully visible
+      if (
+        selectedItemBottom > scrollTop + containerHeight ||
+        selectedItemTop < scrollTop
+      ) {
+        // Scroll to center the selected item in the container
+        const targetScrollTop = Math.max(
+          0,
+          selectedItemTop - containerHeight / 2 + itemHeight / 2
+        );
+        container.scrollTo({
+          top: targetScrollTop,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [selectedItem, sortedItems]);
 
   return (
     <div className=" p-12 h-screen grid md:grid-cols-3">
@@ -90,18 +155,95 @@ export default function App() {
             >
               All
             </Button>
+            <Button onClick={() => setNumItems(0)} disabled={numItems === 0}>
+              Remove All
+            </Button>
           </div>
-          {nextItem && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="text-sm font-medium text-blue-800">
-                Next Item:
-              </div>
-              <div className="text-lg font-semibold text-blue-900">
-                {nextItem.type_name}
-              </div>
-              <div className="text-sm text-blue-700">ID: {nextItem.id}</div>
+          {/* Timeline of items */}
+          <div className="mt-8">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
+              List of products :
+            </h3>
+            <div
+              className="space-y-2 max-h-64 overflow-y-auto"
+              ref={timelineRef}
+            >
+              {sortedItems.map((item, index) => {
+                const isAdded = index < numItems;
+                const isNext = index === numItems;
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`flex items-center gap-3 p-2 rounded-md transition-colors cursor-pointer ${
+                      selectedItem && selectedItem.id === item.id
+                        ? isAdded
+                          ? "bg-green-100 border border-green-300"
+                          : isNext
+                          ? "bg-blue-100 border border-blue-300"
+                          : "bg-gray-100 border border-gray-300"
+                        : isAdded
+                        ? "bg-green-50 border border-green-200"
+                        : isNext
+                        ? "bg-blue-50 border border-blue-200"
+                        : "bg-gray-50 border border-gray-200"
+                    }`}
+                    onClick={() => setSelectedItem(item)}
+                  >
+                    {/* Timeline indicator */}
+                    <div
+                      className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                        isAdded
+                          ? "bg-green-500"
+                          : isNext
+                          ? "bg-blue-500"
+                          : "bg-gray-400"
+                      }`}
+                    />
+
+                    {/* Item info */}
+                    <div className="flex-1 min-w-0">
+                      <div
+                        className={`text-sm font-medium truncate ${
+                          isAdded
+                            ? "text-green-800"
+                            : isNext
+                            ? "text-blue-800"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {item.type_name || item.product_name}
+                      </div>
+                      <div
+                        className={`text-xs ${
+                          isAdded
+                            ? "text-green-600"
+                            : isNext
+                            ? "text-blue-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        ID: {item.id}
+                      </div>
+                    </div>
+
+                    {/* Status indicator */}
+                    <div
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        isAdded
+                          ? "bg-green-100 text-green-700"
+                          : isNext
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {isAdded ? "Added" : isNext ? "Next" : "Pending"}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
 
           {/* {selectedItem && (
             <div className="mt-6">
@@ -146,6 +288,7 @@ export default function App() {
           numItems={numItems}
           cameraAngle={cameraAngle}
           setSelectedItem={setSelectedItem}
+          selectedItem={selectedItem}
         />
       </Canvas>
     </div>

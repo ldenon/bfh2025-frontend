@@ -6,6 +6,7 @@ import Cylinder from "./meshes/Cylinder";
 import { CameraControls } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import data from "@/data/data.json";
+// import data2 from "@/data/data2.json";
 import { log } from "three/tsl";
 
 const { DEG2RAD } = THREE.MathUtils;
@@ -19,12 +20,19 @@ function getRandomColor() {
   return color;
 }
 
-export default function Scene({ numItems, cameraAngle, setSelectedItem }) {
+export default function Scene({
+  numItems,
+  cameraAngle,
+  setSelectedItem,
+  selectedItem,
+}) {
   const cameraControlsRef = useRef();
 
   const { camera } = useThree();
 
   const itemColors = useMemo(() => data.items.map(() => getRandomColor()), []);
+
+  // const objects = data2.order.objects;
 
   // Configurable animation speed variables
   const animationSpeed = 0.5; // seconds per item delay
@@ -74,6 +82,7 @@ export default function Scene({ numItems, cameraAngle, setSelectedItem }) {
             onItemClick={() => {
               setSelectedItem(item);
             }}
+            selected={selectedItem && selectedItem.id === item.id}
           ></Box>
         );
       if (item.geometry == "circle")
@@ -88,6 +97,7 @@ export default function Scene({ numItems, cameraAngle, setSelectedItem }) {
             onItemClick={() => {
               setSelectedItem(item);
             }}
+            selected={selectedItem && selectedItem.id === item.id}
           ></Cylinder>
         );
     });

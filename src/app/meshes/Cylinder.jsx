@@ -9,11 +9,13 @@ export default function Cylinder({
   delay = 0,
   animationDuration = 0.5,
   onItemClick,
+  selected = false,
 }) {
   const geometry = useRef();
   const meshRef = useRef();
   const [started, setStarted] = useState(false);
   const [animProgress, setAnimProgress] = useState(0);
+  const [blinkIntensity, setBlinkIntensity] = useState(0);
 
   useEffect(() => {
     // Décale la géométrie de moitié de sa taille
@@ -27,6 +29,13 @@ export default function Cylinder({
       }
     } else if (animProgress < 1) {
       setAnimProgress((prev) => Math.min(prev + delta / animationDuration, 1));
+    }
+
+    // Blinking animation for selected items
+    if (selected) {
+      setBlinkIntensity(Math.sin(state.clock.elapsedTime * 8) * 0.5 + 0.5);
+    } else {
+      setBlinkIntensity(0);
     }
   });
 
@@ -44,7 +53,11 @@ export default function Cylinder({
         ref={geometry}
         args={[radius, radius, height]}
       ></cylinderGeometry>
-      <meshStandardMaterial color={color}></meshStandardMaterial>
+      <meshStandardMaterial
+        color={color}
+        emissive={selected ? "#444444" : "#000000"}
+        emissiveIntensity={blinkIntensity}
+      ></meshStandardMaterial>
     </mesh>
   );
 }
