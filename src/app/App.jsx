@@ -14,7 +14,7 @@ export default function App() {
   const nextItem = sortedItems[numItems];
 
   return (
-    <div className=" p-12 h-screen grid grid-cols-3">
+    <div className=" p-12 h-screen grid md:grid-cols-3">
       <div className="col-span-1 px-6">
         <h1 className="text-sm  text-gray-500">ORDER</h1>
         <h1 className="text-2xl">ORD-2023-1027-A4B8</h1>
