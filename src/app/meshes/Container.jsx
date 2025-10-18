@@ -1,12 +1,11 @@
-import { useFrame } from "@react-three/fiber";
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 
 export default function Container({
   length = 5.89,
   width = 2.35,
   height = 2.3,
   thickness = 0.3,
-  color = "#7c7c7c",
+  color = "#4a90e2",
   position,
   children,
 }) {
@@ -14,47 +13,48 @@ export default function Container({
   const material = useRef();
   const containerMesh = useRef();
 
-  useFrame(({ clock }) => {
-    const a = clock.getElapsedTime();
-    // containerMesh.current.position.x = a;
-  });
-
   return (
     <group position={position}>
       {/* Floor */}
       <mesh
         ref={containerMesh}
         position={[length / 2, thickness / 2, width / 2]}
+        castShadow
+        receiveShadow
       >
         <meshStandardMaterial
           ref={material}
           color={color}
-        ></meshStandardMaterial>
-        <boxGeometry
-          ref={geometry}
-          args={[length, thickness, width]}
-        ></boxGeometry>
+          metalness={0.8}
+          roughness={0.2}
+        />
+        <boxGeometry ref={geometry} args={[length, thickness, width]} />
       </mesh>
-
       {/* Back wall */}
-      <mesh position={[length / 2, height / 2, 0 - thickness / 2]}>
+      <mesh
+        position={[length / 2, height / 2, width + thickness / 2]}
+        castShadow
+      >
         <meshStandardMaterial
           ref={material}
           color={color}
-        ></meshStandardMaterial>
+          metalness={0.8}
+          roughness={0.2}
+        />
 
         <boxGeometry
           ref={geometry}
           args={[length + thickness * 2, height, thickness]}
         ></boxGeometry>
       </mesh>
-
       {/* Left wall */}
-      <mesh position={[-(thickness / 2), height / 2, width / 2]}>
+      <mesh position={[-(thickness / 2), height / 2, width / 2]} castShadow>
         <meshStandardMaterial
           ref={material}
           color={color}
-        ></meshStandardMaterial>
+          metalness={0.8}
+          roughness={0.2}
+        />
 
         <boxGeometry
           ref={geometry}
@@ -63,18 +63,22 @@ export default function Container({
       </mesh>
 
       {/* Right wall */}
-      <mesh position={[length + thickness / 2, height / 2, width / 2]}>
+      <mesh
+        position={[length + thickness / 2, height / 2, width / 2]}
+        castShadow
+      >
         <meshStandardMaterial
           ref={material}
           color={color}
-        ></meshStandardMaterial>
+          metalness={0.8}
+          roughness={0.2}
+        />
 
         <boxGeometry
           ref={geometry}
           args={[thickness, height, width]}
         ></boxGeometry>
       </mesh>
-
       <group>{children}</group>
     </group>
   );

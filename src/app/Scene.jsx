@@ -1,99 +1,101 @@
 import * as THREE from "three";
-import { memo, useRef, forwardRef, useEffect } from "react";
+import { memo, useRef, forwardRef, useEffect, useState, useMemo } from "react";
 import Box from "./meshes/Box";
 import Container from "./meshes/Container";
 import Cylinder from "./meshes/Cylinder";
 import { CameraControls } from "@react-three/drei";
-import { useControls, button, buttonGroup } from "leva";
 import { useThree } from "@react-three/fiber";
 import data from "@/data/data.json";
+import { log } from "three/tsl";
 
 const { DEG2RAD } = THREE.MathUtils;
 
 function getRandomColor() {
-  var letters = "0123456789ABCDEF";
-  var color = "#";
-  for (var i = 0; i < 6; i++) {
+  let letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
   return color;
 }
 
-export default function Scene() {
+export default function Scene({ numItems, cameraAngle, setSelectedItem }) {
   const cameraControlsRef = useRef();
 
   const { camera } = useThree();
 
-  // All same options as the original "basic" example: https://yomotsu.github.io/camera-controls/examples/basic.html
-  const { minDistance, enabled, verticalDragToForward } = useControls({
-    thetaGrp: buttonGroup({
-      label: "rotate theta",
-      opts: {
-        "+45º": () => cameraControlsRef.current?.rotate(45 * DEG2RAD, 0, true),
-        "-90º": () => cameraControlsRef.current?.rotate(-90 * DEG2RAD, 0, true),
-        "+360º": () =>
-          cameraControlsRef.current?.rotate(360 * DEG2RAD, 0, true),
-      },
-    }),
-    phiGrp: buttonGroup({
-      label: "rotate phi",
-      opts: {
-        "+20º": () => cameraControlsRef.current?.rotate(0, 20 * DEG2RAD, true),
-        "-40º": () => cameraControlsRef.current?.rotate(0, -40 * DEG2RAD, true),
-      },
-    }),
-    truckGrp: buttonGroup({
-      label: "truck",
-      opts: {
-        "(1,0)": () => cameraControlsRef.current?.truck(1, 0, true),
-        "(0,1)": () => cameraControlsRef.current?.truck(0, 1, true),
-        "(-1,-1)": () => cameraControlsRef.current?.truck(-1, -1, true),
-      },
-    }),
-    dollyGrp: buttonGroup({
-      label: "dolly",
-      opts: {
-        1: () => cameraControlsRef.current?.dolly(1, true),
-        "-1": () => cameraControlsRef.current?.dolly(-1, true),
-      },
-    }),
-    zoomGrp: buttonGroup({
-      label: "zoom",
-      opts: {
-        "/2": () => cameraControlsRef.current?.zoom(camera.zoom / 2, true),
-        "/-2": () => cameraControlsRef.current?.zoom(-camera.zoom / 2, true),
-      },
-    }),
-    minDistance: { value: 0 },
-    reset: button(() => cameraControlsRef.current?.reset(true)),
-    enabled: { value: true, label: "controls on" },
-  });
+  const itemColors = useMemo(() => data.items.map(() => getRandomColor()), []);
+
+  // Configurable animation speed variables
+  const animationSpeed = 0.5; // seconds per item delay
+  const animationDuration = 0.5; // seconds for slide animation
+
+  useEffect(() => {
+    if (cameraControlsRef.current) {
+      const containerLength = data.container.width / 100;
+      const containerWidth = data.container.height / 100;
+      const targetX = containerLength / 2;
+      const targetY = 0.15; // thickness / 2
+      const targetZ = containerWidth / 2;
+
+      switch (cameraAngle) {
+        case "top":
+          cameraControlsRef.current.setPosition(targetX, 7, targetZ, true);
+          break;
+        case "front":
+          cameraControlsRef.current.setPosition(targetX, 5, targetZ - 7, true);
+          break;
+        case "left":
+          cameraControlsRef.current.setPosition(targetX - 7, 5, targetZ, true);
+          break;
+        case "right":
+          cameraControlsRef.current.setPosition(targetX + 7, 5, targetZ, true);
+          break;
+        default:
+          cameraControlsRef.current.setPosition(targetX, 7, targetZ, true);
+      }
+      cameraControlsRef.current.setTarget(targetX, targetY, targetZ, true);
+    }
+  }, [cameraAngle]);
 
   const getContainerMeshes = (data) => {
-    const items = data.items.map((item) => {
+    const sortedItems = data.items.sort((a, b) => b.center_y - a.center_y);
+    const items = sortedItems.slice(0, numItems).map((item, index) => {
       if (item.geometry == "rectangle")
         return (
           <Box
-            color={getRandomColor()}
+            key={index}
+            color={itemColors[data.items.indexOf(item)]}
             length={item.width / 100}
             width={item.height / 100}
             position={[item.center_x / 100, item.center_y / 100]}
+            delay={index * animationSpeed}
+            animationDuration={animationDuration}
+            onItemClick={() => {
+              setSelectedItem(item);
+            }}
           ></Box>
         );
       if (item.geometry == "circle")
         return (
           <Cylinder
-            color={getRandomColor()}
+            key={index}
+            color={itemColors[data.items.indexOf(item)]}
             radius={item.radius / 100}
             position={[item.center_x / 100, item.center_y / 100]}
+            delay={index * animationSpeed}
+            animationDuration={animationDuration}
+            onItemClick={() => {
+              setSelectedItem(item);
+            }}
           ></Cylinder>
         );
     });
 
     return (
       <Container
-        width={data.container.width / 100}
-        length={data.container.height / 100}
+        width={data.container.height / 100}
+        length={data.container.width / 100}
       >
         {items}
       </Container>
@@ -102,18 +104,37 @@ export default function Scene() {
 
   return (
     <>
-      <ambientLight></ambientLight>
-      <directionalLight position={[0, 1, 0]}></directionalLight>
+      <color attach="background" args={["#f0f0f0"]} />
+      <fog attach="fog" args={["#f0f0f0", 20, 50]} />
+      <ambientLight intensity={0.6} />
+      <directionalLight
+        position={[5, 10, 5]}
+        intensity={1.5}
+        castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-far={50}
+        shadow-camera-left={-10}
+        shadow-camera-right={10}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
+      />
+      <directionalLight position={[-5, 5, -5]} intensity={0.5} />
+      <pointLight position={[0, 10, 0]} intensity={0.8} />
+
+      <mesh
+        receiveShadow
+        position={[0, -0.05, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <planeGeometry args={[50, 50]} />
+        <meshStandardMaterial color="#e0e0e0" />
+      </mesh>
 
       {getContainerMeshes(data)}
 
       <group>
-        <CameraControls
-          ref={cameraControlsRef}
-          minDistance={minDistance}
-          enabled={enabled}
-          verticalDragToForward={verticalDragToForward}
-        />
+        <CameraControls ref={cameraControlsRef} />
       </group>
     </>
   );
