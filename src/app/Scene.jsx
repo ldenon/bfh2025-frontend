@@ -6,10 +6,11 @@ import Cylinder from "./meshes/Cylinder";
 import { CameraControls } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import jsonInput from "@/data/nice.json";
-// import jsonInput from "@/data/final3dstacks.json";
-import { transformData } from "@/lib/data";
+import jsonInput2 from "@/data/final3dstacks.json";
+import { transformData, transformNewData } from "@/lib/data";
 
 const data = transformData(jsonInput);
+// const data = transformNewData(jsonInput2);
 
 function getRandomColor() {
   let letters = "0123456789ABCDEF";
@@ -77,7 +78,7 @@ export default function Scene({
             length={item.width}
             width={item.length}
             height={item.height}
-            position={[item.center_x, 0, item.center_y]}
+            position={[item.center_x, item.center_z, item.center_y]}
             delay={index * animationSpeed}
             animationDuration={animationDuration}
             onItemClick={() => {

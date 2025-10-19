@@ -53,6 +53,7 @@ const transformData = (rawData) => {
         center_y: item.placement.position.y / 1000,
         center_z: cumulativeHeights[index], // Vertical position based on stack level
         geometry: item.form === "Zylinder" ? "circle" : "rectangle",
+        weight: item.gewicht_kg || 0,
       };
 
       if (item.form === "Zylinder") {
@@ -77,4 +78,48 @@ const transformData = (rawData) => {
     items: items,
   };
 };
-export { transformData };
+
+const transformNewData = (rawData) => {
+  // New transformation logic goes here
+
+  const items = [];
+
+  // loop through each stack
+  rawData.objects.forEach((stack, index) => {
+    stack.objects.forEach((item, itemIndex) => {
+      const transformedItem = {
+        id: itemIndex,
+        type_id: item.id || itemIndex,
+        type_name: item.name,
+        product_name: "Palette " + itemIndex,
+        center_x: item.position.x / 1000,
+        center_y: item.position.y / 1000,
+        center_z: item.position.z / 1000,
+        geometry: item.type === "Quader" ? "rectangle" : "circle",
+        weight: item.weight_kg || 0,
+      };
+
+      if (transformedItem.geometry === "circle") {
+        // transformedItem.radius = item.dimensions?.radius / 1000 || 10;
+      } else {
+        transformedItem.length = item.dimensions?.laenge / 1000 || 10;
+        transformedItem.width = item.dimensions?.breite / 1000 || 10;
+        transformedItem.height = item.height / 1000 || 10;
+      }
+      items.push(transformedItem);
+    });
+  });
+
+  console.log(items);
+
+  return {
+    container: {
+      length: rawData.container.length / 1000,
+      width: rawData.container.width / 1000,
+      height: rawData.container.height / 1000,
+    },
+    item_count: items.length,
+    items: items,
+  };
+};
+export { transformData, transformNewData };

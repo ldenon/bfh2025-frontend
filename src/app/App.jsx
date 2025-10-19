@@ -3,8 +3,10 @@ import * as THREE from "three";
 import { useState, useRef, useEffect } from "react";
 import Scene from "./Scene";
 import { Button } from "@/components/ui/button";
-// import rawData from "@/data/final3dstacks.json";
+
 import rawData from "@/data/nice.json";
+import jsonInput2 from "@/data/final3dstacks.json";
+
 import {
   ReactSVGPanZoom,
   TOOL_PAN,
@@ -13,8 +15,9 @@ import {
   TOOL_AUTO,
 } from "react-svg-pan-zoom";
 
-import { transformData } from "@/lib/data.js";
+import { transformData, transformNewData } from "@/lib/data.js";
 const data = transformData(rawData);
+// const data = transformNewData(jsonInput2);
 
 // 2D View Component
 function View2D({ data, numItems, selectedItem, setSelectedItem }) {
@@ -147,11 +150,7 @@ export default function App() {
 
   // Calculate current weight
   const currentWeight = sortedItems.slice(0, numItems).reduce((total, item) => {
-    // Find the original object to get weight
-    const originalObject = rawData.objects.find(
-      (obj) => obj.name === item.type_name
-    );
-    return total + (originalObject?.gewicht_kg || 0);
+    return total + item.weight;
   }, 0);
 
   const maxWeight = rawData.container.max_weight;
