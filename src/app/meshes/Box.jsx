@@ -6,7 +6,7 @@ export default function Box({
   length = 1,
   height = 1,
   color,
-  position = [0, 0],
+  position = [0, 0, 0],
   delay = 0,
   animationDuration = 0.5,
   onItemClick,
@@ -43,7 +43,11 @@ export default function Box({
   return (
     <mesh
       ref={meshRef}
-      position={[position[0], 0.3, position[1] - 10 * (1 - animProgress)]}
+      position={[
+        position[0],
+        position[1] + 0.3,
+        position[2] - 10 * (1 - animProgress),
+      ]}
       castShadow
       onPointerDown={(e) => {
         e.stopPropagation();

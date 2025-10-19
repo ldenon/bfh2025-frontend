@@ -3,12 +3,141 @@ import * as THREE from "three";
 import { useState, useRef, useEffect } from "react";
 import Scene from "./Scene";
 import { Button } from "@/components/ui/button";
-import data from "@/data/data.json";
+import rawData from "@/data/nice.json";
+import {
+  ReactSVGPanZoom,
+  TOOL_PAN,
+  TOOL_ZOOM_IN,
+  TOOL_ZOOM_OUT,
+  TOOL_AUTO,
+} from "react-svg-pan-zoom";
+
+import { transformData } from "@/lib/data.js";
+const data = transformData(rawData);
+
+// 2D View Component
+function View2D({ data, numItems, selectedItem, setSelectedItem }) {
+  const containerWidth = data.container.width;
+  const containerLength = data.container.length;
+
+  console.log(data);
+
+  // Scale factor to fit the view nicely
+  const scale = 100;
+
+  const [tool, setTool] = useState(TOOL_AUTO);
+
+  return (
+    <div className="col-span-2 bg-white border w-full rounded-lg p-4 flex flex-col">
+      <h3 className="text-lg font-semibold mb-4 flex-shrink-0">
+        Container Layout (Top View)
+      </h3>
+      <div className="flex-1 flex justify-center min-h-0">
+        <ReactSVGPanZoom
+          height="100%"
+          tool={tool}
+          onChangeTool={setTool}
+          background="#f8fafc"
+          SVGBackground="#f8fafc"
+          miniatureProps={{
+            position: "none",
+          }}
+          toolbarProps={{
+            position: "right",
+          }}
+        >
+          <svg
+            width={containerWidth * scale + 400}
+            height={containerLength * scale + 600}
+            viewBox={`0 0 ${containerWidth * scale + 400} ${
+              containerLength * scale + 600
+            }`}
+          >
+            {/* Container outline */}
+            <rect
+              y={40}
+              width={containerWidth * scale}
+              height={containerLength * scale}
+              fill="none"
+              stroke="#374151"
+              strokeWidth="2"
+            />
+
+            {/* Items */}
+            {data.items.slice(0, numItems).map((item, index) => {
+              const isSelected = selectedItem && selectedItem.id === item.id;
+
+              const itemWidth = item.width;
+              const itemHeight = item.length;
+
+              return (
+                <g key={item.id}>
+                  {item.geometry === "circle" ? (
+                    <circle
+                      cx={item.center_x * scale}
+                      cy={40 + item.center_y * scale}
+                      r={item.radius * scale}
+                      fill={isSelected ? "#3B82F6" : "#10B981"}
+                      stroke={isSelected ? "#1D4ED8" : "#059669"}
+                      strokeWidth="2"
+                      opacity={isSelected ? "0.8" : "0.6"}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => setSelectedItem(item)}
+                    />
+                  ) : (
+                    <rect
+                      x={(item.center_x - itemWidth / 2) * scale}
+                      y={40 + (item.center_y - itemHeight / 2) * scale}
+                      width={itemWidth * scale}
+                      height={itemHeight * scale}
+                      fill={isSelected ? "#3B82F6" : "#10B981"}
+                      stroke={isSelected ? "#1D4ED8" : "#059669"}
+                      strokeWidth="2"
+                      opacity={isSelected ? "0.8" : "0.6"}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => setSelectedItem(item)}
+                    />
+                  )}
+                  {/* Item label */}
+                  <text
+                    x={item.center_x * scale}
+                    y={40 + item.center_y * scale}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize="10"
+                    fill="white"
+                    fontWeight="bold"
+                    style={{ pointerEvents: "none" }}
+                  >
+                    {index + 1}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Legend */}
+            <g transform={`translate(20, ${containerLength * scale + 70})`}>
+              <circle cx="10" cy="10" r="6" fill="#10B981" opacity="0.6" />
+              <text x="25" y="15" fontSize="12" fill="#374151">
+                Items Added
+              </text>
+              <circle cx="120" cy="10" r="6" fill="#3B82F6" opacity="0.8" />
+              <text x="135" y="15" fontSize="12" fill="#374151">
+                Selected
+              </text>
+            </g>
+          </svg>
+        </ReactSVGPanZoom>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const [numItems, setNumItems] = useState(0);
   const [cameraAngle, setCameraAngle] = useState("top");
   const [selectedItem, setSelectedItem] = useState(null);
+  const [viewMode, setViewMode] = useState("3D"); // "2D" or "3D"
 
   const timelineRef = useRef(null);
 
@@ -20,20 +149,20 @@ export default function App() {
     if (timelineRef.current && numItems < sortedItems.length) {
       const container = timelineRef.current;
       const itemHeight = 56; // Approximate height of each timeline item (including gap)
-      const containerHeight = container.clientHeight;
+      const containerLength = container.clientHeight;
       const scrollTop = container.scrollTop;
       const nextItemTop = numItems * itemHeight;
       const nextItemBottom = nextItemTop + itemHeight;
 
       // Check if next item is not fully visible
       if (
-        nextItemBottom > scrollTop + containerHeight ||
+        nextItemBottom > scrollTop + containerLength ||
         nextItemTop < scrollTop
       ) {
         // Scroll to center the next item in the container
         const targetScrollTop = Math.max(
           0,
-          nextItemTop - containerHeight / 2 + itemHeight / 2
+          nextItemTop - containerLength / 2 + itemHeight / 2
         );
         container.scrollTo({
           top: targetScrollTop,
@@ -48,7 +177,7 @@ export default function App() {
     if (timelineRef.current && selectedItem) {
       const container = timelineRef.current;
       const itemHeight = 56; // Approximate height of each timeline item (including gap)
-      const containerHeight = container.clientHeight;
+      const containerLength = container.clientHeight;
       const scrollTop = container.scrollTop;
 
       // Find the index of the selected item in sortedItems
@@ -62,13 +191,13 @@ export default function App() {
 
       // Check if selected item is not fully visible
       if (
-        selectedItemBottom > scrollTop + containerHeight ||
+        selectedItemBottom > scrollTop + containerLength ||
         selectedItemTop < scrollTop
       ) {
         // Scroll to center the selected item in the container
         const targetScrollTop = Math.max(
           0,
-          selectedItemTop - containerHeight / 2 + itemHeight / 2
+          selectedItemTop - containerLength / 2 + itemHeight / 2
         );
         container.scrollTo({
           top: targetScrollTop,
@@ -83,6 +212,25 @@ export default function App() {
       <div className="col-span-1 px-6">
         <h1 className="text-sm  text-gray-500">ORDER</h1>
         <h1 className="text-2xl">ORD-2023-1027-A4B8</h1>
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold mb-2">View Mode</h2>
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === "2D" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("2D")}
+            >
+              2D
+            </Button>
+            <Button
+              variant={viewMode === "3D" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("3D")}
+            >
+              3D
+            </Button>
+          </div>
+        </div>
         <div className="mt-6">
           <h2 className="text-lg font-semibold mb-2">Camera Angles</h2>
           <div className="flex gap-2">
@@ -244,53 +392,30 @@ export default function App() {
               })}
             </div>
           </div>
-
-          {/* {selectedItem && (
-            <div className="mt-6">
-              <h2 className="text-lg font-semibold mb-2">Selected Item</h2>
-              <div className="space-y-1 text-sm">
-                <p>
-                  <strong>Geometry:</strong> {selectedItem.geometry}
-                </p>
-                {selectedItem.geometry === "rectangle" && (
-                  <>
-                    <p>
-                      <strong>Width:</strong> {selectedItem.width}
-                    </p>
-                    <p>
-                      <strong>Height:</strong> {selectedItem.height}
-                    </p>
-                  </>
-                )}
-                {selectedItem.geometry === "circle" && (
-                  <p>
-                    <strong>Radius:</strong> {selectedItem.radius}
-                  </p>
-                )}
-                <p>
-                  <strong>Center X:</strong> {selectedItem.center_x}
-                </p>
-                <p>
-                  <strong>Center Y:</strong> {selectedItem.center_y}
-                </p>
-              </div>
-            </div>
-          )} */}
         </div>
       </div>
 
-      <Canvas
-        className="col-span-2 bg-white border-1 rounded-lg"
-        shadows
-        camera={{ position: [-1, 10, 0], fov: 80 }}
-      >
-        <Scene
+      {viewMode === "3D" ? (
+        <Canvas
+          className="col-span-2 bg-white border-1 rounded-lg"
+          shadows
+          camera={{ position: [-1, 10, 0], fov: 80 }}
+        >
+          <Scene
+            numItems={numItems}
+            cameraAngle={cameraAngle}
+            setSelectedItem={setSelectedItem}
+            selectedItem={selectedItem}
+          />
+        </Canvas>
+      ) : (
+        <View2D
+          data={data}
           numItems={numItems}
-          cameraAngle={cameraAngle}
-          setSelectedItem={setSelectedItem}
           selectedItem={selectedItem}
+          setSelectedItem={setSelectedItem}
         />
-      </Canvas>
+      )}
     </div>
   );
 }

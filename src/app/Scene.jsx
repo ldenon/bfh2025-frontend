@@ -5,11 +5,10 @@ import Container from "./meshes/Container";
 import Cylinder from "./meshes/Cylinder";
 import { CameraControls } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import data from "@/data/data.json";
-// import data2 from "@/data/data2.json";
-import { log } from "three/tsl";
+import jsonInput from "@/data/nice.json";
+import { transformData } from "@/lib/data";
 
-const { DEG2RAD } = THREE.MathUtils;
+const data = transformData(jsonInput);
 
 function getRandomColor() {
   let letters = "0123456789ABCDEF";
@@ -40,8 +39,8 @@ export default function Scene({
 
   useEffect(() => {
     if (cameraControlsRef.current) {
-      const containerLength = data.container.width / 100;
-      const containerWidth = data.container.height / 100;
+      const containerLength = data.container.width;
+      const containerWidth = data.container.height;
       const targetX = containerLength / 2;
       const targetY = 0.15; // thickness / 2
       const targetZ = containerWidth / 2;
@@ -74,9 +73,10 @@ export default function Scene({
           <Box
             key={index}
             color={itemColors[data.items.indexOf(item)]}
-            length={item.width / 100}
-            width={item.height / 100}
-            position={[item.center_x / 100, item.center_y / 100]}
+            length={item.width}
+            width={item.length}
+            height={item.height}
+            position={[item.center_x, 0, item.center_y]}
             delay={index * animationSpeed}
             animationDuration={animationDuration}
             onItemClick={() => {
@@ -90,8 +90,8 @@ export default function Scene({
           <Cylinder
             key={index}
             color={itemColors[data.items.indexOf(item)]}
-            radius={item.radius / 100}
-            position={[item.center_x / 100, item.center_y / 100]}
+            radius={item.radius}
+            position={[item.center_x, 0, item.center_y]}
             delay={index * animationSpeed}
             animationDuration={animationDuration}
             onItemClick={() => {
@@ -102,10 +102,13 @@ export default function Scene({
         );
     });
 
+    // console.log(data);
+
     return (
       <Container
-        width={data.container.height / 100}
-        length={data.container.width / 100}
+        length={data.container.width}
+        width={data.container.length}
+        height={data.container.height}
       >
         {items}
       </Container>

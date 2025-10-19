@@ -1,9 +1,9 @@
 import { useRef } from "react";
 
 export default function Container({
-  length = 5.89,
-  width = 2.35,
-  height = 2.3,
+  length = 1,
+  width = 1,
+  height = 1,
   thickness = 0.3,
   color = "#4a90e2",
   position,

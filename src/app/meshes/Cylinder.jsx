@@ -42,7 +42,11 @@ export default function Cylinder({
   return (
     <mesh
       ref={meshRef}
-      position={[position[0], 0.3, position[1] - 10 * (1 - animProgress)]}
+      position={[
+        position[0],
+        (position[1] || 0) + 0.3,
+        position[2] - 10 * (1 - animProgress),
+      ]}
       castShadow
       onPointerDown={(e) => {
         e.stopPropagation();
