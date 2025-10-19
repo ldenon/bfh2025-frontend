@@ -17,11 +17,6 @@ export default function Cylinder({
   const [animProgress, setAnimProgress] = useState(0);
   const [blinkIntensity, setBlinkIntensity] = useState(0);
 
-  useEffect(() => {
-    // Décale la géométrie de moitié de sa taille
-    geometry.current.translate(0, 0.5, 0);
-  }, []);
-
   useFrame((state, delta) => {
     if (!started) {
       if (state.clock.elapsedTime > delay) {
@@ -44,7 +39,7 @@ export default function Cylinder({
       ref={meshRef}
       position={[
         position[0],
-        (position[1] || 0) + 0.3,
+        (position[1] || 0) + 0.3 + height / 2,
         position[2] - 10 * (1 - animProgress),
       ]}
       castShadow

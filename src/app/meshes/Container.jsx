@@ -32,7 +32,7 @@ export default function Container({
       </mesh>
       {/* Back wall */}
       <mesh
-        position={[length / 2, height / 2, width + thickness / 2]}
+        position={[length / 2, height / 2 + 0.3, width + thickness / 2]}
         castShadow
       >
         <meshStandardMaterial
@@ -44,11 +44,14 @@ export default function Container({
 
         <boxGeometry
           ref={geometry}
-          args={[length + thickness * 2, height, thickness]}
+          args={[length + thickness * 2, height + 0.6, thickness]}
         ></boxGeometry>
       </mesh>
       {/* Left wall */}
-      <mesh position={[-(thickness / 2), height / 2, width / 2]} castShadow>
+      <mesh
+        position={[-(thickness / 2), height / 2 + 0.3, width / 2]}
+        castShadow
+      >
         <meshStandardMaterial
           ref={material}
           color={color}
@@ -58,13 +61,13 @@ export default function Container({
 
         <boxGeometry
           ref={geometry}
-          args={[thickness, height, width]}
+          args={[thickness, height + 0.6, width]}
         ></boxGeometry>
       </mesh>
 
       {/* Right wall */}
       <mesh
-        position={[length + thickness / 2, height / 2, width / 2]}
+        position={[length + thickness / 2, height / 2 + 0.3, width / 2]}
         castShadow
       >
         <meshStandardMaterial
@@ -76,7 +79,7 @@ export default function Container({
 
         <boxGeometry
           ref={geometry}
-          args={[thickness, height, width]}
+          args={[thickness, height + 0.6, width]}
         ></boxGeometry>
       </mesh>
       <group>{children}</group>

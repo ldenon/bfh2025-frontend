@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { useState, useRef, useEffect } from "react";
 import Scene from "./Scene";
 import { Button } from "@/components/ui/button";
+// import rawData from "@/data/final3dstacks.json";
 import rawData from "@/data/nice.json";
 import {
   ReactSVGPanZoom,
@@ -144,6 +145,17 @@ export default function App() {
   const sortedItems = [...data.items].sort((a, b) => b.center_y - a.center_y);
   const nextItem = sortedItems[numItems];
 
+  // Calculate current weight
+  const currentWeight = sortedItems.slice(0, numItems).reduce((total, item) => {
+    // Find the original object to get weight
+    const originalObject = rawData.objects.find(
+      (obj) => obj.name === item.type_name
+    );
+    return total + (originalObject?.gewicht_kg || 0);
+  }, 0);
+
+  const maxWeight = rawData.container.max_weight;
+
   // Autoscroll timeline to show next item
   useEffect(() => {
     if (timelineRef.current && numItems < sortedItems.length) {
@@ -264,7 +276,32 @@ export default function App() {
             </Button>
           </div>
         </div>
-        <div className="mt-12">
+        <div className="mt-4">
+          <div className="mt-4">
+            <div className="flex justify-between text-sm mb-1">
+              <span>Container Weight</span>
+              <span>
+                {currentWeight.toFixed(1)} kg / {maxWeight} kg
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div
+                className={`h-3 rounded-full transition-all duration-300 ${
+                  currentWeight > maxWeight ? "bg-red-600" : "bg-green-600"
+                }`}
+                style={{
+                  width: `${Math.min((currentWeight / maxWeight) * 100, 100)}%`,
+                }}
+              ></div>
+            </div>
+            <p className="text-xs text-gray-600 mt-1">
+              {currentWeight > maxWeight
+                ? `${(currentWeight - maxWeight).toFixed(1)} kg over capacity`
+                : `${(maxWeight - currentWeight).toFixed(
+                    1
+                  )} kg remaining capacity`}
+            </p>
+          </div>
           <div className="mt-4">
             <div className="flex justify-between text-sm mb-1">
               <span>Items in Container</span>
@@ -282,6 +319,7 @@ export default function App() {
               {data.items.length - numItems} items remaining to add
             </p>
           </div>
+
           <div className="flex gap-2 mt-4">
             <Button
               onClick={() =>

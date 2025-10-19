@@ -6,6 +6,7 @@ import Cylinder from "./meshes/Cylinder";
 import { CameraControls } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import jsonInput from "@/data/nice.json";
+// import jsonInput from "@/data/final3dstacks.json";
 import { transformData } from "@/lib/data";
 
 const data = transformData(jsonInput);
@@ -80,6 +81,7 @@ export default function Scene({
             delay={index * animationSpeed}
             animationDuration={animationDuration}
             onItemClick={() => {
+              console.log(item);
               setSelectedItem(item);
             }}
             selected={selectedItem && selectedItem.id === item.id}
