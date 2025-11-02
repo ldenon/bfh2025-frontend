@@ -9,8 +9,8 @@ import jsonInput from "@/data/nice.json";
 import jsonInput2 from "@/data/final3dstacks.json";
 import { transformData, transformNewData } from "@/lib/data";
 
-const data = transformData(jsonInput);
-// const data = transformNewData(jsonInput2);
+// const data = transformData(jsonInput);
+const data = transformNewData(jsonInput2);
 
 function getRandomColor() {
   let letters = "0123456789ABCDEF";
@@ -38,6 +38,21 @@ export default function Scene({
   // Configurable animation speed variables
   const animationSpeed = 0.5; // seconds per item delay
   const animationDuration = 0.5; // seconds for slide animation
+
+  // Set initial camera position on mount
+  useEffect(() => {
+    if (cameraControlsRef.current) {
+      const containerLength = data.container.width;
+      const containerWidth = data.container.height;
+      const targetX = containerLength / 2;
+      const targetY = 0.15; // thickness / 2
+      const targetZ = containerWidth / 2;
+
+      // Set initial top view
+      cameraControlsRef.current.setPosition(targetX, 7, targetZ, true);
+      cameraControlsRef.current.setTarget(targetX, targetY, targetZ, true);
+    }
+  }, []); // Empty dependency array - runs only on mount
 
   useEffect(() => {
     if (cameraControlsRef.current) {
@@ -68,7 +83,7 @@ export default function Scene({
   }, [cameraAngle]);
 
   const getContainerMeshes = (data) => {
-    const sortedItems = data.items.sort((a, b) => b.center_y - a.center_y);
+    const sortedItems = data.items.sort((a, b) => a.center_y - b.center_y);
     const items = sortedItems.slice(0, numItems).map((item, index) => {
       if (item.geometry == "rectangle")
         return (
@@ -82,7 +97,6 @@ export default function Scene({
             delay={index * animationSpeed}
             animationDuration={animationDuration}
             onItemClick={() => {
-              console.log(item);
               setSelectedItem(item);
             }}
             selected={selectedItem && selectedItem.id === item.id}
@@ -104,8 +118,6 @@ export default function Scene({
           ></Cylinder>
         );
     });
-
-    // console.log(data);
 
     return (
       <Container
@@ -137,6 +149,15 @@ export default function Scene({
       />
       <directionalLight position={[-5, 5, -5]} intensity={0.5} />
       <pointLight position={[0, 10, 0]} intensity={0.8} />
+
+      {/* Axis Helper - shows X (red), Y (green), Z (blue) axes */}
+      <axesHelper args={[10]} />
+
+      {/* Origin marker - small sphere at (0,0,0) */}
+      <mesh position={[0, 0, 0]}>
+        <sphereGeometry args={[0.05, 8, 8]} />
+        <meshBasicMaterial color="#ff0000" />
+      </mesh>
 
       <mesh
         receiveShadow

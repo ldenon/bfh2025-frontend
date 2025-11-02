@@ -40,7 +40,7 @@ export default function Cylinder({
       position={[
         position[0],
         (position[1] || 0) + 0.3 + height / 2,
-        position[2] - 10 * (1 - animProgress),
+        position[2] + 10 * (1 - animProgress),
       ]}
       castShadow
       onPointerDown={(e) => {
