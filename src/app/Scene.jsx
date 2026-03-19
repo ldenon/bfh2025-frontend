@@ -42,11 +42,9 @@ export default function Scene({
   // Set initial camera position on mount
   useEffect(() => {
     if (cameraControlsRef.current) {
-      const containerLength = data.container.width;
-      const containerWidth = data.container.height;
-      const targetX = containerLength / 2;
+      const targetX = 0;
       const targetY = 0.15; // thickness / 2
-      const targetZ = containerWidth / 2;
+      const targetZ = 0;
 
       // Set initial top view
       cameraControlsRef.current.setPosition(targetX, 7, targetZ, true);
@@ -56,18 +54,16 @@ export default function Scene({
 
   useEffect(() => {
     if (cameraControlsRef.current) {
-      const containerLength = data.container.width;
-      const containerWidth = data.container.height;
-      const targetX = containerLength / 2;
+      const targetX = 0;
       const targetY = 0.15; // thickness / 2
-      const targetZ = containerWidth / 2;
+      const targetZ = 0;
 
       switch (cameraAngle) {
         case "top":
           cameraControlsRef.current.setPosition(targetX, 7, targetZ, true);
           break;
         case "front":
-          cameraControlsRef.current.setPosition(targetX, 5, targetZ - 7, true);
+          cameraControlsRef.current.setPosition(targetX, 5, targetZ + 7, true);
           break;
         case "left":
           cameraControlsRef.current.setPosition(targetX - 7, 5, targetZ, true);
